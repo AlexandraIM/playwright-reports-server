@@ -35,8 +35,7 @@ export async function generateViewport(): Promise<Viewport> {
   };
 }
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { result: config } = await getConfigWithError();
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 
   return (
     <html suppressHydrationWarning lang="en">
@@ -44,7 +43,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <Providers attribute="class" defaultTheme="dark">
           <div className="relative flex flex-col h-screen">
-            <Navbar config={config!} />
+            <Navbar />
             <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
               {children}
               <Toaster closeButton richColors visibleToasts={3} />

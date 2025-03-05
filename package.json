@@ -14,6 +14,7 @@
     "test:integration": "jest --testPathPattern=__tests__/integration"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
     "@nextui-org/link": "^2.2.7",
     "@nextui-org/navbar": "^2.2.8",
     "@nextui-org/react": "^2.4.8",

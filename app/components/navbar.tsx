@@ -13,15 +13,17 @@ import { link as linkStyles } from '@nextui-org/theme';
 import NextLink from 'next/link';
 import clsx from 'clsx';
 
+import { getConfigWithError } from '../config/file';
+
 import { HeaderLinks } from '@/app/components/header-links';
 import { siteConfig } from '@/app/config/site';
 import { ThemeSwitch } from '@/app/components/theme-switch';
 import { SiteWhiteLabelConfig } from '@/app/types';
-interface NavbarProps {
-  config: SiteWhiteLabelConfig;
-}
 
-export const Navbar: React.FC<NavbarProps> = async ({ config }) => {
+
+export const Navbar = async () => {
+  const { result: config } = await getConfigWithError();
+
   const title = config?.title;
 
   return (

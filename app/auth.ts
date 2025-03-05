@@ -1,6 +1,4 @@
-import NextAuth from 'next-auth';
-import { NextAuthConfig } from 'next-auth';
-import { type User } from 'next-auth';
+import NextAuth, { NextAuthConfig, type User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import jwt from 'jsonwebtoken';
 
@@ -13,8 +11,28 @@ const secret = process.env.AUTH_SECRET ?? crypto.randomUUID();
 const expirationHours = process.env.UI_AUTH_EXPIRE_HOURS ? parseInt(process.env.UI_AUTH_EXPIRE_HOURS) : 2;
 const expirationSeconds = expirationHours * 60 * 60;
 
-export const authConfig: NextAuthConfig = {
+const getJwtStubToken = () => {
+  if (!secret) {
+    throw new Error('AUTH_SECRET is not defined');
+  }
+
+  return jwt.sign({ authorized: true }, secret);
+};
+
+const commonConfig: Partial<NextAuthConfig> = {
   secret,
+  session: {
+    strategy: 'jwt',
+    maxAge: expirationSeconds,
+  },
+  trustHost: true,
+  pages: {
+    signIn: '/login',
+  },
+};
+
+export const authConfig: NextAuthConfig = {
+  ...commonConfig,
   providers: [
     CredentialsProvider({
       name: 'API Token',
@@ -23,6 +41,9 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials): Promise<User | null> {
         if (credentials?.apiToken === process.env.API_TOKEN) {
+          if (!secret) {
+            throw new Error('AUTH_SECRET is not defined');
+          }
           const token = jwt.sign({ authorized: true }, secret);
 
           return {
@@ -51,21 +72,10 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
   },
-  session: {
-    strategy: 'jwt',
-    maxAge: expirationSeconds,
-  },
-  trustHost: true,
-  pages: {
-    signIn: '/login',
-  },
 };
 
-const getJwtStubToken = () => {
-  return jwt.sign({ authorized: true }, secret);
-};
-
-const noAuth = {
+const noAuthConfig: NextAuthConfig = {
+  ...commonConfig,
   providers: [
     CredentialsProvider({
       name: 'No Auth',
@@ -78,9 +88,6 @@ const noAuth = {
     }),
   ],
   callbacks: {
-    authorized: async () => {
-      return true;
-    },
     async session({ session }) {
       session.sessionToken = getJwtStubToken();
       session.user.jwtToken = session.sessionToken;
@@ -88,12 +95,6 @@ const noAuth = {
       return session;
     },
   },
-  trustHost: true,
-  session: {
-    strategy: 'jwt',
-    maxAge: expirationSeconds,
-  },
-  secret,
-} satisfies NextAuthConfig;
+};
 
-export const { handlers, auth, signIn, signOut } = NextAuth(useAuth ? authConfig : noAuth);
+export const { handlers, auth, signIn, signOut } = NextAuth(useAuth ? authConfig : noAuthConfig);
